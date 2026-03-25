@@ -4,7 +4,7 @@
 # run as: ./unclustered_heatmap.R
 
 # Script is part of the modeling-independent analysis and calculates the area under the curve (AUC) values from the dose-response curves for each cell line, treatment and phenotype followed by a paired t-test comparing KO to WT.
-# These values are visualized in a heatmap for all tested knockout cell lines against a panel of compounds.Here the computed AUC ratio compound/DMSO for a given KO cell line is normalized to WT in order to understand the effect of knocking out a BAF subunit has on the treated state.
+# These values are visualized in a heatmap for all tested knockout cell lines against a panel of compounds. Here the computed AUC ratio compound/DMSO for a given KO cell line is normalized to WT in order to understand the effect knocking out a BAF subunit has on the cell's response to the treatment.
 
 TodaysDate <- ""
 AnalysisName<-"Systematic"
@@ -198,7 +198,7 @@ BAFSubtypeDF <- BAFSubtypeDF %>% mutate(Subtype=case_when(
   CL == "WT" ~ "control"))
 
 # create list of growth curve phenotypes to parse through for plotting
-ListOfPhenotypes <- c("Confluency_after_24h","Confluency_after_48h","Confluency_after_72h","Confluency_after_96h","Second_Phase_Relative_Change_in_Confluency","First_Phase_Duration","First_Phase_Change_in_Confluency")
+ListOfPhenotypes <- c("Confluency_after_24h","Confluency_after_48h","Confluency_after_72h","Confluency_after_96h","Second_Phase_Relative_Change_in_Confluency")
 
 ################################ Plotting Heatmap for each Phenotype ################################
 
@@ -262,7 +262,7 @@ wtlabel <- "WT"
 
 ################################################################################
 
-###### Plot unclustered & clustered heatmaps for each phenotype ######
+###### Plot unclustered heatmap for each phenotype ######
 
 for(n in 1:length(ListOfPhenotypes)){
 

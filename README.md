@@ -1,2 +1,4 @@
 # GrowPipe_public
 Public code to analyze HTP cell confluency data
+
+This pipeline ("GrowPipe") contains functions that upload, process, and analyze cellular growth assay datasets. Untreated data is fitted to a non-linear mixed effects model to estimate the initial confluency, growth rate, and maximum capacity; while 5 phenotypes are extracted from the treated data: confluency after 24hr, 48hr, 72hr, and 96 hr of treatment along with the relative change in confluency after 96hr over 48hr of treatment. All phenotypes are normalized to the control treatment and the wild-type cell line and are ultimately visualized via dose-response curves and heatmaps.

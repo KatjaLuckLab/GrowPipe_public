@@ -1,12 +1,12 @@
 #' Assigning Identifiers for Analysis Groups - Quality Control
 
 #'
-#' TThis function assigns an analysis ID (i.e. nlmm_analysis_1) to every analysis group: KO + treatment, KO + control, WT + treatment, and WT + control, where the goal is to compare compound treatment to control treatment and
+#' This function assigns an analysis ID (i.e. nlmm_analysis_1) to every analysis group: KO + treatment, KO + control, WT + treatment, and WT + control, where the goal is to compare compound treatment to control treatment and
 #' knockout (KO) cell line to the wildtype (WT) cell line. This version is used before plotting the growth curves of all members of one analysis group on the same graph during the quality control step of the pipeline.
 #' @param IncucyteDataAndMetaDataAndConditionsDF Dataframe that combines Incucyte Confluency Dataset, Meta Data and Condition ID table.
 #' @param IncucyteDMSODilutionDF Dataframe that contains the contents of the Incucyte DMSO Dilution Table. This is used for finding the respective control treatment and concentration for a given compound.
-#' @param ListOfSpecialCompounds List of compounds that are normalized to untreated cells rather than DMSO-treated cells.
-#' @param ListofNewClones List of cell line modifications that use a different DMSO concentration.
+#' @param ListOfSpecialCompounds List of compounds that are normalized to untreated cells rather than DMSO-treated cells. Default is NULL.
+#' @param ListofNewClones List of cell line modifications that use a different DMSO concentration. Default is NULL.
 #' @param wildtype Variable representing name of wildtype cell line.
 #' @return
 #'\item{IncucyteDataAndMetaDataAndConditionsLabeledDF}{ Dataframe that combines Incucyte Confluency Dataset, Meta Data, Condition IDs and analysis IDs.}
@@ -234,7 +234,7 @@ getSamePlatesPerComparisonGroup <- function(IncucyteDataAndMetaDataAndConditions
 
 #'
 #' Ths function assigns an untreated analysis ID (i.e. untreat_nlmm_analysis_1) to every untreated analysis group: KO + untreated and WT + untreated, where the goal is to compare the knockout (KO) cell line to the wildtype (WT)
-#'  cell line in the untreated state. This function is used before running NLMM on untreated data for the KO and WT cell lines.
+#'  cell line in the untreated state. This function is used before running NLMM on the untreated data for the KO and WT cell lines.
 #' @param IncucyteDataAndMetaDataAndConditionsDF Dataframe that combines Incucyte Confluency Dataset, Meta Data and Condition ID table.
 #' @param wildtype A variable representing the wildtype cell line.
 #' @param AnalysisName User-defined unique name of the analysis being conducted.
@@ -293,6 +293,3 @@ getSamePlatesPerUntreatedComparisonGroup <- function(IncucyteDataAndMetaDataAndC
   return(IncucyteDataAndMetaDataAndConditionsLabeledDF)
 
 }
-
-
-

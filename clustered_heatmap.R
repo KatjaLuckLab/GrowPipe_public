@@ -101,7 +101,7 @@ IncucyteDataAndMetaData <- IncucyteDataDF %>% left_join(IncucyteMetaDataDF, by =
 IncucyteDataAndMetaDataAndConditionsDF <- IncucyteDataAndMetaData %>% left_join(IncucyteConditionDF, by = c("condition_ID"))
 
 #remove outer wells/outliers
-IncucyteDataAndMetaDataAndConditionsDF= subset(IncucyteDataAndMetaDataAndConditionsDF, IncucyteDataAndMetaDataAndConditionsDF$exclude==0)#0
+IncucyteDataAndMetaDataAndConditionsDF= subset(IncucyteDataAndMetaDataAndConditionsDF, IncucyteDataAndMetaDataAndConditionsDF$exclude==0)
 
 #generate bio_rep column:join condition_ID, project_ID and plate_ID
 IncucyteDataAndMetaDataAndConditionsDF$bio_rep_id<- paste(IncucyteDataAndMetaDataAndConditionsDF$condition_ID, IncucyteDataAndMetaDataAndConditionsDF$project_ID, IncucyteDataAndMetaDataAndConditionsDF$plate_ID, sep = '|')
@@ -1088,6 +1088,7 @@ scaling <- "scaled"
 minColorRange <- -0.5
 maxColorRange <- 0.5
 
+# want phenotypes (columns) unclustered
 columnk <- 0
 
 plotlist<- getAUCSummaryHeatmapClustered(AUCDF5PhenotypesDF[,1:5],AUCDF5PhenotypesDF,PValue5PhenotypesDF,ListOfUnsupervisedMethodComps$bestClustMethod,BAFSubtypeDF,CompoundMOADF,SubtypeColors,MOAColors,kolabel,wtlabel,

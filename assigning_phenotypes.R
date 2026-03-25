@@ -3,10 +3,10 @@
 #command-line executable:  chmod +x assigning_phenotypes.R
 # run as: ./assigning_phenotypes.R
 
-# This script processes the confluency data and generates the following phenotype readouts: confluency after 24h, 48h, 72h, 96h and 96h/48h of treatment.
+# This script processes the confluency data and generates phenotype readouts, including: confluency after 24h, 48h, 72h, 96h and 96h/48h of treatment.
 
 ################################################## Loading Necessary Libraries and Source Code #########################################################################
-source("./R/splitpoint.R")
+source("./R/phenotype_assignment_functions.R")
 
 library("RMySQL")
 library(nlme)

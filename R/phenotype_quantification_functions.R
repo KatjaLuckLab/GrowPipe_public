@@ -4,7 +4,7 @@
 #' This function normalizes all non-NLMM phenotypes (i.e. logistic phase duration) to the control treatment (i.e. DMSO).
 #' @param IncucyteDataAndMetaDataAndConditionsLabeledDF Dataframe containing condition IDs, analysis group IDs and non-NLMM phenotypes.
 #' @param controlcompound Variable representing the compound all treatments should be normalized to (i.e. DMSO).
-#' @param ListOfSpecialCompounds List of compounds that are normalized to untreated cells rather than DMSO-treated cells.
+#' @param ListOfSpecialCompounds List of compounds that are normalized to untreated cells rather than DMSO-treated cells. Default is NULL.
 #' @param normalizationtype Variable representing how conditions should be normalized: 'global' (default), all conditions normalized to same compound; 'firsttreatment', user-specified conditions containing more than 1 compound that should be normalized to the first compound.
 #' @param respectconditions Variable detailing whether treated conditions are normalized to the control compound that also has the same second treatment at the same concentration, i.e. treatment_1 and concentration_1, ('TRUE', default)
 #' or whether the second treatment is ignored when normalizing to the control compound ('FALSE').
@@ -22,10 +22,6 @@ normalizeToDMSO <- function(IncucyteDataAndMetaDataAndConditionsLabeledDF,contro
 
   # if all conditions get normalized to the same compound (i.e. DMSO):
   if(isTRUE(normalizationtype=="global")==TRUE){
-
-    # IncucyteSplitPointPlateIDsDFDMSO <- subset(IncucyteDataAndMetaDataAndConditionsLabeledDF, treatment_0 ==controlcompound)
-
-    # IncucyteSplitPointPlateIDsDFUntreat <- subset(IncucyteDataAndMetaDataAndConditionsLabeledDF, treatment =="Untreated")
 
     ListOfSpecialCompounds2 <- NULL
 
@@ -55,18 +51,8 @@ normalizeToDMSO <- function(IncucyteDataAndMetaDataAndConditionsLabeledDF,contro
       }
 
     }
-    # else{
-    #   if(isTRUE(respectconditions == TRUE)==TRUE){IncucyteSplitPointPlateIDsDFTreat <- subset(IncucyteDataAndMetaDataAndConditionsLabeledDF, treatment_0 !=controlcompound)
-    #   IncucyteSplitPointPlateIDsDFDMSO <- subset(IncucyteDataAndMetaDataAndConditionsLabeledDF, treatment_0 ==controlcompound)
-    #
-    #   }else{
-    #     IncucyteSplitPointPlateIDsDFTreat <- subset(IncucyteDataAndMetaDataAndConditionsLabeledDF, treatment !=controlcompound)
-    #
-    #     IncucyteSplitPointPlateIDsDFDMSO <- subset(IncucyteDataAndMetaDataAndConditionsLabeledDF, treatment ==controlcompound)
-  }
 
-  # }
-  # }
+  }
 
   # conditions where more than one compound was used (treatment_0 & treatment_1), get normalized to the first compound (treatment_0) as user-specified in ListOfNormalizationPairs
   if(isTRUE(normalizationtype=="firsttreatment")==TRUE){
@@ -80,9 +66,6 @@ normalizeToDMSO <- function(IncucyteDataAndMetaDataAndConditionsLabeledDF,contro
 
     NormalizationPairsDF <- t(NormalizationPairsDF)
 
-
-    # IncucyteSplitPointPlateIDsDFUntreat <- subset(IncucyteDataAndMetaDataAndConditionsLabeledDF, treatment =="Untreated")
-
     #if there are certain compounds that need to be normalized to the untreated condition
     if(isTRUE(!(is.null(ListOfSpecialCompounds)))==TRUE){
 
@@ -93,7 +76,7 @@ normalizeToDMSO <- function(IncucyteDataAndMetaDataAndConditionsLabeledDF,contro
       #if there are no compounds that need to be normalized to the untreated condition
       IncucyteSplitPointPlateIDsDFTreat <- subset(IncucyteDataAndMetaDataAndConditionsLabeledDF, !(treatment %in%controlcompound))}
 
-  } # & is.na(treatment_1)
+  }
 
 
   # loop row-wise through conditions that need to be normalized
@@ -113,30 +96,16 @@ normalizeToDMSO <- function(IncucyteDataAndMetaDataAndConditionsLabeledDF,contro
     if(isTRUE(as.character(IncucyteSplitPointPlateIDsDFTreat[i,26]) %in% ListOfSpecialCompounds2)==TRUE){
 
       cntrlcmpnd <- subset(NormalizationPairsDF, NormalizationPairsDF[,1]==IncucyteSplitPointPlateIDsDFTreat[i,26])
-      # if(isTRUE(normalizationtype=="firsttreatment")==TRUE){
+
       IncucyteSplitPointPlateIDsDFDMSOSubset <- subset(IncucyteSplitPointPlateIDsDFFirstCmpnd, cell_line_modifications==as.character(IncucyteSplitPointPlateIDsDFTreat[i,4]) & cell_number==as.character(IncucyteSplitPointPlateIDsDFTreat[i,5])&
                                                          plate_ID==TreatPartner& treatment ==cntrlcmpnd[,2]  & concentration_0 == as.character(IncucyteSplitPointPlateIDsDFTreat[i,7]))
-    }#treatment_0 ==as.character(IncucyteSplitPointPlateIDsDFTreat[i,6])  & concentration_0 == as.character(IncucyteSplitPointPlateIDsDFTreat[i,7]) & NLMM_Analysis_ID==as.character(IncucyteSplitPointPlateIDsDFTreat[i,29])
+    }
 
     #if compound doesn't list for those that need to be normalized to untreated OR first condition AND all conditions get normalized to same control compound:
     if(isTRUE(!(as.character(IncucyteSplitPointPlateIDsDFTreat[i,26]) %in% ListOfSpecialCompounds) & normalizationtype=="global")==TRUE){
-      # DMSOConcentration <- subset(IncucyteDMSODilutionDF, IncucyteDMSODilutionDF$Compound_name==as.character(IncucyteSplitPointPlateIDsDFTreat[i,6]))
 
-      # if(isTRUE(grepl("KO_[0-9]",as.character(IncucyteSplitPointPlateIDsDFTreat[i,4])))==TRUE){
-      #   IncucyteSplitPointPlateIDsDFDMSOSubset <- subset(IncucyteSplitPointPlateIDsDFDMSO, concentration_0==DMSOConcentration$DMSO_concentration_1)
-      #   # DMSOConcentration <- DMSOConcentration$DMSO_concentration_1
-      #   # subset(IncucyteDMSODilutionDF, IncucyteDMSODilutionDF$DMSO_concentration_1%in% IncucyteKOTreatDatasetSubsetOriginal$treatment_0 )
-      # }
-      # if(isTRUE(grepl("KO_[0-9]",as.character(IncucyteSplitPointPlateIDsDFTreat[i,4])))==FALSE){
-      #   IncucyteSplitPointPlateIDsDFDMSOSubset <- subset(IncucyteSplitPointPlateIDsDFDMSO, concentration_0==DMSOConcentration$DMSO_concentration_0)
-      #   # DMSOConcentration <- DMSOConcentration$DMSO_concentration_0
-      #   # subset(IncucyteDMSODilutionDF, IncucyteDMSODilutionDF$Compound_name%in% IncucyteKOTreatDatasetSubsetOriginal$treatment_0 )
-      # }
       IncucyteSplitPointPlateIDsDFDMSOSubset <- subset(IncucyteSplitPointPlateIDsDFDMSO,cell_line_modifications ==as.character(IncucyteSplitPointPlateIDsDFTreat[i,4])& plate_ID==TreatPartner & NLMM_Analysis_ID==as.character(IncucyteSplitPointPlateIDsDFTreat[i,29]))
 
-      # # IncucyteSplitPointPlateIDsDFDMSOSubset <- subset(IncucyteSplitPointPlateIDsDFDMSO, concentration_0%in%DMSOConcentration$DMSO_concentration)
-      # IncucyteSplitPointPlateIDsDFDMSOSubset <- subset(IncucyteSplitPointPlateIDsDFDMSOSubset, cell_line_modifications ==as.character(IncucyteSplitPointPlateIDsDFTreat[i,4]))
-      # IncucyteSplitPointPlateIDsDFDMSOSubset <-subset(IncucyteSplitPointPlateIDsDFDMSOSubset,plate_ID==TreatPartner)
     }
 
     if(isTRUE(nrow(IncucyteSplitPointPlateIDsDFDMSOSubset)>1)==TRUE){
@@ -189,13 +158,8 @@ normalizeToDMSO <- function(IncucyteDataAndMetaDataAndConditionsLabeledDF,contro
 }
 
 
-# "condition_ID","bio_rep_id","plate_ID", "cell_line_modifications", "cell_number", "treatment_0", "concentration_0",
-# "treatment_1", "concentration_1", "split_timepoint", "logistic_growth_phase", "logistic_growth_duration", "second_phase", "second_phase_duration",
-# "after_24h_confluency",  "after_48h_confluency","after_72h_confluency","last_confluency","conf_96hr_48hr_ratio",
-# "split_first_conf_difference", "phenotype","treatment","CL_treat_conc_id","treat_conc_id","NLMM_Analysis_ID"
-
 #########################################################################################################################################################################################################################################################################
-#' Calculating AUC for each Phenotype Normalized to Control Treatment - Quality Control
+#' Calculating AUC for each Phenotype Normalized to Control Treatment
 
 #'
 #' This function calculates the AUC for all modeling-independent phenotypes (i.e. confluency after 24hr of treatment) for KO and its respective WT separately.
@@ -212,7 +176,6 @@ normalizeToDMSO <- function(IncucyteDataAndMetaDataAndConditionsLabeledDF,contro
 getAUCsPerConditionNormalizedToDMSO <- function(PhenotypesNormToDMSODF, wildtype){
 
   #############  if cell lines are to be normalized to user-sepcified wildtype (i.e. KO/WT)   #############
-  if(isTRUE(wildtype!="self")==TRUE){
     treat_conc_combos <- unique(PhenotypesNormToDMSODF$treatment)
 
     AUCsPerConditionDF <- data.frame(stringsAsFactors = FALSE)
@@ -369,172 +332,6 @@ getAUCsPerConditionNormalizedToDMSO <- function(PhenotypesNormToDMSODF, wildtype
 
     #merge the WT and KO dataframes
     AUCsPerConditionDF <- merge(AUCsPerConditionDF,AUCsPerConditionWTDF, by = c("treatment", "cell_line_modification", "plate_ID","log_AUC_values","log_KO/WT_AUC_Ratio","Phenotype","CL_group"), all=TRUE)
-  }
-
-
-
-  ############# in case where user desires cell lines are normalized to themselves (i.e. KO/KO)   #############
-  else if(isTRUE(wildtype=="self")==TRUE){
-    treat_conc_combos <- unique(PhenotypesNormToDMSODF$treatment_0)
-
-    AUCsPerConditionDF <- data.frame(stringsAsFactors = FALSE)
-
-    ListOfPhenotypeRatios <- c("Confluency_after_24h_ratio","Confluency_after_48h_ratio","Confluency_after_72h_ratio","Confluency_after_96h_ratio","Second_Phase_Relative_Change_in_Confluency_ratio",
-                               "First_Phase_Duration_ratio","First_Phase_Change_in_Confluency_ratio")
-
-    i = 0
-
-    for(k in 1:length(treat_conc_combos)){
-
-      #subset data for one treatment_0 (allows for treatment_0 AND treatment_0 + treatment_1 to be left in dataframe!)
-      PhenotypesNormToDMSODFSubset = subset(PhenotypesNormToDMSODF, PhenotypesNormToDMSODF$treatment_0==treat_conc_combos[k])#k
-
-      CL_list <- unique(PhenotypesNormToDMSODFSubset$cell_line_modification)
-
-      #loop through cell lines
-      for(j in 1:length(CL_list)){
-
-        #subset data for one cell line
-        PhenotypesNormToDMSODFSubsetCL = subset(PhenotypesNormToDMSODFSubset, PhenotypesNormToDMSODFSubset$cell_line_modification==CL_list[j])#j
-
-        # get list of concentrations that condition with only treatment_0 have been treated with
-        PhenotypesNormToDMSODFSubsetWT <- PhenotypesNormToDMSODFSubsetCL %>%
-          group_by(concentration_0) %>%
-          dplyr::filter(is.na(treatment_1))
-
-        # get list of concentrations that condition with treatment_0 & treatment_1 have been treated with
-        PhenotypesNormToDMSODFSubsetCL <- PhenotypesNormToDMSODFSubsetCL %>%
-          group_by(concentration_0) %>%
-          dplyr::filter(!(is.na(treatment_1)))
-
-        #filter to make sure the same concentrations between the two conditions is kept
-        PhenotypesNormToDMSODFSubsetCL = subset(PhenotypesNormToDMSODFSubsetCL, treatment_0 %in% PhenotypesNormToDMSODFSubsetWT$treatment_0 & concentration_0 %in% PhenotypesNormToDMSODFSubsetWT$concentration_0)
-
-        PhenotypesNormToDMSODFSubsetWT = subset(PhenotypesNormToDMSODFSubsetWT, treatment_0 %in% PhenotypesNormToDMSODFSubsetCL$treatment_0 & concentration_0 %in% PhenotypesNormToDMSODFSubsetCL$concentration_0)
-
-        i= i + 1
-
-        PhenotypesNormToDMSODFSubsetWT2 = subset(PhenotypesNormToDMSODFSubsetWT,plate_ID %in% PhenotypesNormToDMSODFSubsetCL$plate_ID)
-
-        PlateList <- unique(PhenotypesNormToDMSODFSubsetCL$plate_ID)
-
-        m=0
-
-        if(length(PlateList) > 1){
-
-          TestDF <- data.frame()
-
-          #loop through plate IDs
-          for(l in 1:length(PlateList)){
-
-            PhenotypesNormToDMSODFSubsetCL2 = subset(PhenotypesNormToDMSODFSubsetCL, PhenotypesNormToDMSODFSubsetCL$plate_ID==PlateList[l])#l
-
-            PhenotypesNormToDMSODFSubsetWT3 = subset(PhenotypesNormToDMSODFSubsetWT2,plate_ID %in% PhenotypesNormToDMSODFSubsetCL2$plate_ID)
-
-            # get concentrations in numerical order for condition with treatment_0 & treatment_1 df
-            KOCompoundConcentrationString <- PhenotypesNormToDMSODFSubsetCL2$concentration_0
-
-            KOCompoundConcentrationNumber <- lapply(KOCompoundConcentrationString, function(x) gsub("[^0-9.-]", "", x))
-
-            PhenotypesNormToDMSODFSubsetCL2 <- PhenotypesNormToDMSODFSubsetCL2%>%
-              ungroup()%>%
-              mutate(conc_values = unlist(KOCompoundConcentrationNumber))
-
-            PhenotypesNormToDMSODFSubsetCL2$conc_values <- log2(as.numeric(unlist(PhenotypesNormToDMSODFSubsetCL2$conc_values)))
-
-            #loop through phenotypes
-            for(n in 1:length(ListOfPhenotypeRatios)){
-
-              PhenotypeRatio <- ListOfPhenotypeRatios[n]
-
-              PhenotypeName1 <- gsub("_ratio", "", PhenotypeRatio)
-
-              PhenotypeName2 <- gsub("_", " ", PhenotypeName1)
-
-              #in the case there's only one biorep...
-              if(isTRUE(length(unique(PhenotypesNormToDMSODFSubsetCL2$NLMM_Analysis_ID))==1)==TRUE){
-
-                ko_auc_val$value <- NaN
-                ko_auc_val$abs.error <- "Not enough data"
-                ko_min_conc <- NaN
-                ko_max_conc <- NaN
-              } else{
-
-                #in the case there's more than one biorep, compute AUC for condition with treatment_0 & treatment_1
-                ko_min_conc <-  min(as.numeric(unlist(PhenotypesNormToDMSODFSubsetCL2$conc_values)))
-
-                ko_max_conc <- max(as.numeric(unlist(PhenotypesNormToDMSODFSubsetCL2$conc_values)))
-
-
-                ko_auc_val <- integrate(approxfun(PhenotypesNormToDMSODFSubsetCL2$conc_values,unlist(PhenotypesNormToDMSODFSubsetCL2[,PhenotypeRatio]), ties = mean), lower = ko_min_conc, upper = ko_max_conc)
-              }
-
-              # get concentrations in numerical order for ondition with only treatment_0 df
-              WTCompoundConcentrationString <- PhenotypesNormToDMSODFSubsetWT3$concentration_0
-
-              WTCompoundConcentrationNumber <- lapply(WTCompoundConcentrationString, function(x) gsub("[^0-9.-]", "", x))
-
-              PhenotypesNormToDMSODFSubsetWT3 <- PhenotypesNormToDMSODFSubsetWT3%>%
-                ungroup()%>%
-                mutate(conc_values = unlist(WTCompoundConcentrationNumber))
-
-              PhenotypesNormToDMSODFSubsetWT3$conc_values <- log2(as.numeric(unlist(PhenotypesNormToDMSODFSubsetWT3$conc_values)))
-
-              #in the case there's only one biorep...
-              if(isTRUE(length(unique(PhenotypesNormToDMSODFSubsetWT3$NLMM_Analysis_ID))==1)==TRUE){
-                wt_auc_val$value <- NaN
-                wt_auc_val$abs.error <- "Not enough data"
-                wt_min_conc <- NaN
-                wt_max_conc <- NaN
-              } else{
-
-                #in the case there's more than one biorep, compute AUC for condition with treatment_0 & treatment_1
-                wt_min_conc <-  min(as.numeric(unlist(PhenotypesNormToDMSODFSubsetWT3$conc_values)))
-
-                wt_max_conc <- max(as.numeric(unlist(PhenotypesNormToDMSODFSubsetWT3$conc_values)))
-
-                wt_auc_val <- integrate(approxfun(PhenotypesNormToDMSODFSubsetWT3$conc_values,unlist(PhenotypesNormToDMSODFSubsetWT3[,PhenotypeRatio]), ties = mean), lower = wt_min_conc, upper = wt_max_conc)
-              }
-
-              #populate TestDF with AUC values
-              m =m + 1
-
-              TestDF[m,1] <- unique(PhenotypesNormToDMSODFSubsetCL2$treatment)
-              TestDF[m,2] <- unique(PhenotypesNormToDMSODFSubsetCL2$cell_line_modification)
-              TestDF[m,3] <- unique(PhenotypesNormToDMSODFSubsetCL2$plate_ID)
-              TestDF[m,4] <-log2(ko_auc_val$value)
-              TestDF[m,5] <-log2(wt_auc_val$value)
-              TestDF[m,6] <-log2(ko_auc_val$value/wt_auc_val$value)
-              TestDF[m,7] <- PhenotypeName1
-            }
-          }
-          #add TestDF to empty dataframe
-
-          AUCsPerConditionDF <- rbind(AUCsPerConditionDF, TestDF)
-        }
-
-      }
-    }
-
-    colnames(AUCsPerConditionDF) <- c("treatment","cell_line_modification","plate_ID", "KO_AUCs", "WT_AUCs", "log_KO/WT_AUC_Ratio","Phenotype")
-
-    #create CL_group
-    AUCsPerConditionDF <- AUCsPerConditionDF %>% mutate(CL_group=paste(cell_line_modification,wildtype,sep="|"))
-
-    #split dataframe into condition with only treatment_0 and both treatment_0 & treatment_1
-    AUCsPerConditionWTDF <- AUCsPerConditionDF[,-4]
-
-    AUCsPerConditionWTDF <- AUCsPerConditionWTDF%>% dplyr::rename(log_AUC_values = WT_AUCs) %>%
-      mutate(cell_line_modification = "self")
-
-    AUCsPerConditionDF <- AUCsPerConditionDF[,-5]
-
-    AUCsPerConditionDF <- AUCsPerConditionDF%>% dplyr::rename(log_AUC_values = KO_AUCs)
-
-    #merge two dataframes back together
-
-    AUCsPerConditionDF <- merge(AUCsPerConditionDF,AUCsPerConditionWTDF, by = c("treatment", "cell_line_modification", "plate_ID","log_AUC_values","log_KO/WT_AUC_Ratio","Phenotype","CL_group"), all=TRUE)
-  }
 
   return(AUCsPerConditionDF)
 
@@ -550,7 +347,7 @@ getAUCsPerConditionNormalizedToDMSO <- function(PhenotypesNormToDMSODF, wildtype
 #' @param wildtype Variable representing name of the wildtype cell line.
 
 #' @return
-#'\item{AUCSignificanceDF}{ A dataframe containing treatment, cell line modification, mean log2 fold-change, t-statistic and p-value for each phenotype and condition.}
+#'\item{CompleteAUCDF}{ A dataframe containing treatment, cell line modification, mean log2 fold-change, t-statistic and p-value for each phenotype and condition.}
 #' @author Caroline Barry
 #' @import dplyr
 #' @import rstatix
@@ -952,7 +749,3 @@ getSummaryPValueMatrix <- function(AUCSignificanceDF){
 
   return(PValue5PhenotypesDF)
 }
-
-
-
-

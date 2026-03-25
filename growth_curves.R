@@ -75,8 +75,7 @@ IncucyteDMSODilutionDF=fetch(IncucyteDMSODilutionTableContents, n = -1)
 
 ############################################################# Data Wrangling #############################################################
 # #subset dataset via metadata
-#labelling of bio and technical replicates by combining meta data with df
-#join has to include proj_ID
+#labeling of biological and technical replicates by combining meta data with df
 IncucyteDataAndMetaData <- IncucyteDataDF %>% left_join(IncucyteMetaDataDF, by = c("project_ID","plate_ID","well_ID"))
 
 #join condition df to previous dataframe in order to include cell line, treatments, etc info
@@ -88,8 +87,7 @@ IncucyteDataAndMetaDataAndConditionsDF= subset(IncucyteDataAndMetaDataAndConditi
 #generate bio_rep column:join condition_ID, project_ID and plate_ID
 IncucyteDataAndMetaDataAndConditionsDF$bio_rep_id<- paste(IncucyteDataAndMetaDataAndConditionsDF$condition_ID, IncucyteDataAndMetaDataAndConditionsDF$project_ID, IncucyteDataAndMetaDataAndConditionsDF$plate_ID, sep = '|')
 
-#bio_rep_id
-#change composite ID to: join condition_ID, project_ID and plate_ID = get bio rep for each condition
+#bio_rep_id: join condition_ID, project_ID and plate_ID = get bio rep for each condition
 IncucyteSplitPointDF$bio_rep_id<- paste(IncucyteSplitPointDF$condition_ID, IncucyteSplitPointDF$project_ID, IncucyteSplitPointDF$plate_ID, sep = '|')
 
 #get first phase of growth curve by merging IncucyteSplitPointDF
@@ -144,7 +142,7 @@ IncucyteDataAndMetaDataAndConditionsLabeledDF <- IncucyteDataAndMetaDataAndCondi
 AvgIncucyteDataAndMetaDataAndConditionsLabeledDF <- AvgIncucyteDataAndMetaDataAndConditionsLabeledDF%>%
   mutate(CL_TRT = paste(cell_line_modifications, treatment_0,sep=" | "))
 
-############################################################# Visualize each Analysis Group per condition with  and without splitpoint #############################################################
+############################################################# Visualize each Analysis Group per condition #############################################################
 # create necessary colors and list of conditions that are to be plotted
 
 CLTRTList <- c("ARID1A KO","ARID2 KO","ARID1B KO","BRD7 KO","BRD9 KO","PBRM1 KO","PHF10 KO","SMARCA4 KO","SMARCC1 KO","SMARCD1 KO","C631")
@@ -184,7 +182,6 @@ for(j in 1:length(ListOfNLMMAnalysisIDs)){
   # plot analysis group for each condition
   PlotObject <- plotGrowthCurves(IncucyteDataAndMetaDataAndConditionsSubset,CLTRTList,ColorListTreat,ColorListControl,wildtype,treatmentendtime, AnalysisValue,LinetypeListTreat=LinetypeListTreat,LinetypeListControl=LinetypeListControl)
 
-
   #make sure directory exists
   SubDir <- sprintf("./Confluency_Curves/%s/%s/Individual_QC_Plots/analysis_group_plots_per_condition/%s/",TypeOfTreatmentData, CompoundName,gsub(" ", "_",CellLineModification))
 
@@ -199,6 +196,4 @@ for(j in 1:length(ListOfNLMMAnalysisIDs)){
 
   ggsave(filename=FilenameForPlotObject, plot=PlotObject,width = 30, height = 20, dpi = 300, units = "in", device='pdf')
 
-
 }
-

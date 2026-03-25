@@ -1,11 +1,8 @@
-## Extracting p-values
+#' Fitting Data to Non-linear Mixed Effects Model (NLMM) and Plotting the Fits and Saving the Model Estimates to MySQL
 
-#' Fitting Data to Non-linear Mixed Effects Model (NLMM) and Plotting the Fits and Saving the Model Estimates to MySQL I - Untreated Interaction Parameter Test
-
-#'
 #' This function calls a function that fits only untreated data in a pairwise fashion (KO untreated & WT untreated) to NLMM with logistic growth function, resulting in 3 model estimates: initial confluency, growth rate, and maximum capacity.
-#'  Additionally, this function calls a function that saves these estimates in the MySQL database. This function also calls a function that plots the model fits.
-#' @param IncucyteDataAndMetaDataAndConditionsLabeledDF Dataframe that combines Incucyte Confluency Dataset, Meta Data, Condition IDs and analysis IDs.
+#'  Additionally, this function calls a function that saves and returns these estimates in a dataframe. Another function is also called to plot the model fits.
+#' @param IncucyteDatasetSubset Dataframe that combines Incucyte Confluency Dataset, Meta Data, Condition IDs and analysis IDs. This subset only contains one unique nlmm analysis group.
 #' @param treatmentendtime Numerical variable represents the time at which treatment ends.
 #' @param ListOfControlCL List mapping each cell line to its respective control cell line.
 #' @param ListOfNLMMFitFailed List containing IDs of analysis groups that failed to fit to the model.
@@ -31,7 +28,6 @@ runNLMM<- function(IncucyteDatasetSubset,treatmentendtime,ListOfControlCL, ListO
 
   ControlCellLine <- unique(IncucyteDatasetSubsetControlCL$cell_line_modifications)
 
-  #find a way to make it also work for clone_nlmm_analysis
   StringPortion <- paste(AnalysisName,"_nlmm_analysis_")
 
   StringPortion <- gsub(" ", "",StringPortion)
@@ -57,15 +53,13 @@ runNLMM<- function(IncucyteDatasetSubset,treatmentendtime,ListOfControlCL, ListO
       cell_line_modifications = factor(cell_line_modifications, levels = c(ControlCellLine, KOCellLine)),
       treatment_0 = factor(treatment_0),
       plate_ID = factor(plate_ID),
-      bio_rep_id = factor(bio_rep_id)
-    )
-
+      bio_rep_id = factor(bio_rep_id))
 
   unique(IncucyteDatasetSubset$condition_ID)
 
   # Create 'groupedData' object
   #model per cell line
-  DF <- groupedData(mean_conf ~ timepoint| bio_rep_id, #
+  DF <- groupedData(mean_conf ~ timepoint| bio_rep_id,
                     data = IncucyteDatasetSubset,
                     labels = list(x = "Time", y = "Confluence"),
                     units = list(x = "(h)", y = "(%)"))
@@ -84,7 +78,6 @@ runNLMM<- function(IncucyteDatasetSubset,treatmentendtime,ListOfControlCL, ListO
     fmm <- runNLMMFitting(DF)
 
   }, error=function(e){
-
 
     e
 
@@ -199,17 +192,15 @@ runNLMM<- function(IncucyteDatasetSubset,treatmentendtime,ListOfControlCL, ListO
 
 #########################################################################################################################################################################################################################################################################
 
-#' Fits Data to Non-linear Mixed Effects Model Using Logistic Growth Function I - Interaction Parameter Test
+#' Fits Data to Non-linear Mixed Effects Model Using Logistic Growth Function
 
-#'
-#' This function fits data to the Interaction Parameter Test - NLMM in an analysis group-wise manner (KO + compound, WT + compound, KO + control, WT + control) and returns model estimates:
-#' initial confluency (y0), maximum capacity (K), and growth rate (r). The parameters K and r are on a log scale. This function computes random effects per biological replicate. The confidence intervals
-#'  will be used to deduce significance of conditions when comparing KO to WT in the heatmap for the NLMM model estimates.
+#' This function fits the untreated confluency data to the NLMM in an analysis group-wise manner (untreated KO & untreated WT) and returns model estimates:
+#' initial confluency (y0), maximum capacity (K), and growth rate (r). The parameters K and r are on a log scale. This function computes random effects per biological replicate.
 #' @param DF A subset of a dataframe containing confluency data, condition IDs, NLMM Analysis IDs, and Meta Data. This subset only contains one unique nlmm analysis group.
-#' @details This function uses dependent random effects: correlation structure across parameters with regards to the random effects; Fridolin saw negative correlation between low y0 and high growth rate
+#' @details This function uses dependent random effects: correlation structure across parameters with regards to the random effects
 
 #' @return
-#'\item{fmm}{ A matrix containing the model estimates from the NLMM Interaction Parameter Test.}
+#'\item{fmm}{ A matrix containing the model estimates from the NLMM.}
 #' @author Caroline Barry & Fridolin Kielisch
 
 runNLMMFitting <- function(DF){
@@ -234,16 +225,15 @@ runNLMMFitting <- function(DF){
 }
 
 #########################################################################################################################################################################################################################################################################
-#' Creates NLMM Estimates Table - Untreated NLMM Interaction Parameter Test
+#' Creates NLMM Estimates Table
 
-#'
-#' This function creates a dataframe of the model estimates per analysis group that are extracted from fmm and uploads this to MySQL.
-#' @param fmm A matrix containing the model estimates from the NLMM Interaction Parameter Test.
+#' This function creates a dataframe of the model estimates per analysis group that are extracted from fmm.
+#' @param fmm A matrix containing the model estimates from the NLMM.
 #' @param DF A subset of a dataframe containing confluency data, condition IDs, NLMM Analysis IDs, and Meta Data. This subset only contains one unique nlmm analysis group.
 #' @param TodaysDate The date.
 
 #' @return
-#'\item{condition}{ Unique condition ID from DF dataframe.}
+#'\item{InteractionEstimateTable}{ A dataframe containing the 3 model estimates (initial confluency, growth rate, and maximum capacity) along with their respective standard errors (SE) and p-value.}
 #' @author Caroline Barry
 
 createNLMMTable <- function(fmm, DF, TodaysDate){
@@ -256,26 +246,26 @@ createNLMMTable <- function(fmm, DF, TodaysDate){
 
   l2k_pval <- t(as.data.frame(goo[2,c(1,2,5)]))
 
-  colnames(l2k_pval) <- c("L2FC_K", "K_SE", "K_pvalue")
+  colnames(l2k_pval) <- c("mm_K_mean", "mm_K_SE", "mm_K_interaction_pvalue")
 
   # assigning the rownames to null
   rownames(l2k_pval) <- NULL
 
   y0_pval <- t(as.data.frame(goo[4,c(1,2,5)]))
 
-  colnames(y0_pval) <- c("y0", "y0_SE", "y0_pvalue")
+  colnames(y0_pval) <- c("mm_y0_mean", "mm_y0_SE", "mm_y0_interaction_pvalue")
 
   # assigning the rownames to null
   rownames(y0_pval) <- NULL
 
   l2r_pval <- t(as.data.frame(goo[6,c(1,2,5)]))
 
-  colnames(l2r_pval) <- c("L2FC_r", "r_SE", "r_pvalue")
+  colnames(l2r_pval) <- c("mm_r_mean", "mm_r_SE", "mm_r__interaction_pvalue")
 
   # assigning the rownames to null
   rownames(l2r_pval) <- NULL
 
-  #delete irrelevant columns (degrees of freedom)
+  # merge the 3 dataframes into one
   InteractionEstimateTable <- data.frame()
 
   InteractionEstimateTable <- rbind(InteractionEstimateTable, y0_pval)
@@ -283,9 +273,6 @@ createNLMMTable <- function(fmm, DF, TodaysDate){
   InteractionEstimateTable <- cbind(InteractionEstimateTable, l2r_pval)
 
   InteractionEstimateTable <- cbind(InteractionEstimateTable, l2k_pval)
-
-  # colnames(InteractionEstimateTable) <- c("y0_interaction_pvalue", "r_interaction_pvalue", "K_interaction_pvalue")
-
 
   #wanna take nlmm_id and paste it to each row
   InteractionEstimateTable <- InteractionEstimateTable %>%
@@ -300,21 +287,20 @@ createNLMMTable <- function(fmm, DF, TodaysDate){
 
 #########################################################################################################################################################################################################################################################################
 
-#' #' Plot the NLMM Model Fits - Untreated Interaction Parameter Test
+#' Plot the NLMM Model Fits
+
 #'
-#' #'
-#' #' This function plots the NLMM Model Fits for each analysis group (KO + compound, KO + control, WT + compound, WT + control) fitted to the model along with the confluency data for the biological replicates that were used to generate these model estimates.
-#' #' @param fmm A matrix containing the model estimates from the NLMM Interaction Parameter Test.
-#' #' @param DF A subset of a dataframe containing confluency data, condition IDs, NLMM Analysis IDs, and Meta Data. This subset only contains one unique nlmm analysis group.
-#' #' @param NumberOfBioReps A value representing the number of biological replicates in DF.
-#' #' @param NumberOfConditions A value representing the number of unique conditions in DF.
-#' #' @param IncucyteDatasetSubsetOriginal Dataframe containing confluency data, condition IDs, NLMM Analysis IDs, and Meta Data where all timepoints are included.
-#' #' @param IncucyteDatasetSubset Dataframe containing confluency data, condition IDs, NLMM Analysis IDs, and Meta Data where only timepoints before the split point are included.
-#' #' @param ControlCellLine Cell line the knockout is being compared to.
-#'
-#' #' @author Caroline Barry & Fridolin Kielisch
-#' #' @export
-#'
+#' This function plots the NLMM Model Fits for each analysis group (untreated KO & untreated WT) along with the confluency data for the biological replicates that were used to generate these model estimates.
+#' @param fmm A matrix containing the model estimates from the NLMM.
+#' @param DF A subset of a dataframe containing confluency data, condition IDs, NLMM Analysis IDs, and Meta Data. This subset only contains one unique nlmm analysis group.
+#' @param NumberOfBioReps A value representing the number of biological replicates in DF.
+#' @param NumberOfConditions A value representing the number of unique conditions in DF.
+#' @param IncucyteDatasetSubset Dataframe containing confluency data, condition IDs, NLMM Analysis IDs, and Meta Data where all timepoints are included. This subset only contains one unique nlmm analysis group.
+#' @param ControlCellLine Cell line the knockout is being compared to.
+
+#' @author Caroline Barry & Fridolin Kielisch
+#' @export
+
 plotNLMMModelFits <- function(fmm, DF, NumberOfBioReps, NumberOfConditions, IncucyteDatasetSubset,ControlCellLine){
 
   mm_K <- as.data.frame(emmeans(fmm, specs = c("cell_line_modifications"), param = "l2K", data = DF))
@@ -322,7 +308,6 @@ plotNLMMModelFits <- function(fmm, DF, NumberOfBioReps, NumberOfConditions, Incu
   mm_y0 <- as.data.frame(emmeans(fmm, specs = c("cell_line_modifications"), param = "y0", data = DF))#
 
   print(paste0("Will plot fitted curves of: ",unique(DF$NLMM_Analysis_ID)))
-
 
   IncucyteDatasetSubsetWT <- subset(IncucyteDatasetSubset, cell_line_modifications == ControlCellLine)
 
@@ -344,8 +329,8 @@ plotNLMMModelFits <- function(fmm, DF, NumberOfBioReps, NumberOfConditions, Incu
 
   re <- re[order(match(rownames(re), unique(IncucyteDatasetSubset$bio_rep_id ))), , drop = FALSE]
 
-  df_plot <- data.frame(t = rep(seq(0, n, length.out = n), as.numeric(NumberOfBioReps)))#bioreps #lines for each biorep of each condition
-  df_plot_cnd <- data.frame(t = rep(seq(0, n, length.out = n), as.numeric(NumberOfConditions)))#12) #model estimate line
+  df_plot <- data.frame(t = rep(seq(0, n, length.out = n), as.numeric(NumberOfBioReps)))#lines for each biorep of each condition
+  df_plot_cnd <- data.frame(t = rep(seq(0, n, length.out = n), as.numeric(NumberOfConditions))) #model estimate line
 
   strsplit(rownames(re), split = "|", fixed = TRUE) |>
     unlist() |>
@@ -358,7 +343,6 @@ plotNLMMModelFits <- function(fmm, DF, NumberOfBioReps, NumberOfConditions, Incu
 
   df_plot$biorep <- rep(rownames(re), each = n)
 
-
   K <- fixedK[cndt]
   r <- fixedr[cndt]
   y0 <- fixedy0[cndt]
@@ -367,8 +351,6 @@ plotNLMMModelFits <- function(fmm, DF, NumberOfBioReps, NumberOfConditions, Incu
   r <- r + re[,3]
   y0 <- y0 + re[,2]
 
-
-  #was 45 but changed to 51 for DMSO
   t <- seq(0, n, length.out = n)
   conf <- as.numeric(NumberOfBioReps)*n
   for(i in 1:as.numeric(NumberOfBioReps)) {
@@ -396,7 +378,7 @@ plotNLMMModelFits <- function(fmm, DF, NumberOfBioReps, NumberOfConditions, Incu
   if(nrow(IncucyteDatasetSubset)>0){
     colnames(IncucyteDatasetSubset)[3] <- "cond"}
 
-  #wanna add condition name labels!
+  # add condition name labels
 
   cndt_names_df <- DF %>%
     dplyr::group_by(condition_ID) %>%
@@ -404,7 +386,6 @@ plotNLMMModelFits <- function(fmm, DF, NumberOfBioReps, NumberOfConditions, Incu
 
   cndt_names_df <- cndt_names_df %>%
     dplyr::rename(cond= condition_ID)
-
 
   cndt2 <- cndt
 
@@ -449,9 +430,7 @@ plotNLMMModelFits <- function(fmm, DF, NumberOfBioReps, NumberOfConditions, Incu
                   df_plot_cnd_conf = conf)
 
 
-
   #plot each condition separately
-
   ConditionList <- unique(df_plot$cond)
 
   fitted_plot <-
